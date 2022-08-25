@@ -2,107 +2,107 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>some simple demo</title>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>some simple demo</title>
 </head>
 
 <body>
-    <video id="video" width="300" height="200" controls></video>
-    <div>
-        <label>
-            <input type="radio" name="playSource" value="remoteSource"><span>监狱风云1</span>
-        </label>
-        <label>
-            <input type="radio" name="playSource" value="remoteSource2"><span>监狱风云2</span>
-        </label>
-        <label>
-            <input type="radio" name="playSource" value="localSource"><span>傻逼兔子</span>
-        </label>
-        <label>
-            <input type="radio" name="playSource" value="localSource2" checked><span>波涛汹涌</span>
-        </label>
-        <hr>
-        <button id="playBlobBtn">使用blob播放</button>
-        <button id="playMediaSourceBtn">使用mediaSrouce播放</button>
-        <button id="playMediaStreamBtn">使用mediaStream播放</button>
-    </div>
-    <script>
-        // 资源
-        const playSourceMap = {
-            remoteSource: 'https://media.qlchat.com/qlLive/activity/video/4B6BOZKN-9Z5R-4TE8-1661412635902-YGNDJV7SKO5W.mp4',
-            remoteSource2: 'https://media.qlchat.com/qlLive/activity/video/NRAOHNLG-4P6Y-KJY4-1661412685421-N6J2SE2XZBV6.mp4',
-            localSource: './frag_bunny.mp4',
-            localSource2: './girl.mp4',
-        }
+  <video id="video" width="300" height="200" controls></video>
+  <div>
+    <label>
+      <input type="radio" name="playSource" value="remoteSource" checked><span>监狱风云1</span>
+    </label>
+    <label>
+      <input type="radio" name="playSource" value="remoteSource2"><span>监狱风云2</span>
+    </label>
+    <label>
+      <input type="radio" name="playSource" value="localSource"><span>傻逼兔子</span>
+    </label>
+    <label>
+      <input type="radio" name="playSource" value="localSource2"><span>波涛汹涌</span>
+    </label>
+    <hr>
+    <button id="playBlobBtn">使用blob播放</button>
+    <button id="playMediaSourceBtn">使用mediaSrouce播放</button>
+    <button id="playMediaStreamBtn">使用mediaStream播放</button>
+  </div>
+  <script>
+    // 资源
+    const playSourceMap = {
+      remoteSource: 'https://media.qlchat.com/qlLive/activity/video/4B6BOZKN-9Z5R-4TE8-1661412635902-YGNDJV7SKO5W.mp4',
+      remoteSource2: 'https://media.qlchat.com/qlLive/activity/video/NRAOHNLG-4P6Y-KJY4-1661412685421-N6J2SE2XZBV6.mp4',
+      localSource: './frag_bunny.mp4',
+      localSource2: './girl.mp4',
+    }
 
-        // 一些辅助方法
-        function fetchRemoteSource(url, headers,) {
-            return fetch(url, headers)
-        }
+    // 一些辅助方法
+    function fetchRemoteSource(url, headers,) {
+      return fetch(url, headers)
+    }
 
-        function getPlaySource() {
-            const checkedInput = document.querySelector('input[name="playSource"]:checked')
-            if (!checkedInput) {
-                return localSource
-            }
-            return playSourceMap[checkedInput.value]
-        }
-    </script>
-    <script>
-        // 视频格式,可以用video.canPlayType来检查,另外codecs可以用MP4info查
-        const mimeCodec = 'video/mp4; codecs="avc1.64001F, mp4a.40.2"';
-        // html标签
-        const video = document.getElementById('video')
-        const playBlobBtn = document.getElementById('playBlobBtn')
-        const playMediaSourceBtn = document.getElementById('playMediaSourceBtn')
-        const playMediaStreamBtn = document.getElementById('playMediaStreamBtn')
-        playBlobBtn.onclick = playWithBlob
-        playMediaSourceBtn.onclick = playWithMediaSourceBtn
-        playMediaStreamBtn.onclick = playWithMediaStreamBtn
+    function getPlaySource() {
+      const checkedInput = document.querySelector('input[name="playSource"]:checked')
+      if (!checkedInput) {
+        return localSource
+      }
+      return playSourceMap[checkedInput.value]
+    }
+  </script>
+  <script>
+    // 视频格式,可以用video.canPlayType来检查,另外codecs可以用MP4info查
+    const mimeCodec = 'video/mp4; codecs="avc1.64001F, mp4a.40.2"';
+    // html标签
+    const video = document.getElementById('video')
+    const playBlobBtn = document.getElementById('playBlobBtn')
+    const playMediaSourceBtn = document.getElementById('playMediaSourceBtn')
+    const playMediaStreamBtn = document.getElementById('playMediaStreamBtn')
+    playBlobBtn.onclick = playWithBlob
+    playMediaSourceBtn.onclick = playWithMediaSourceBtn
+    playMediaStreamBtn.onclick = playWithMediaStreamBtn
 
-        function playWithBlob() {
-            const playSource = getPlaySource()
-            fetchRemoteSource(playSource).then(res => res.blob()).then((blob) => {
-                const url = URL.createObjectURL(blob)
-                video.src = url
-                video.load()
-                video.play()
-            })
-        }
+    function playWithBlob() {
+      const playSource = getPlaySource()
+      fetchRemoteSource(playSource).then(res => res.blob()).then((blob) => {
+        const url = URL.createObjectURL(blob)
+        video.src = url
+        video.load()
+        video.play()
+      })
+    }
 
-        function playWithMediaSourceBtn() {
-            const playSource = getPlaySource()
-            const mediaSource = new MediaSource();
-            mediaSource.onsourceopen = onMediaSourceOpen.bind(mediaSource, playSource)
-            mediaSource.onsourceended = function (e) {
-                console.log(e)
-            }
-            mediaSource.onsourceclose = function (e) {
-                console.log(e)
-            }
-            video.src = URL.createObjectURL(mediaSource);
-        }
+    function playWithMediaSourceBtn() {
+      const playSource = getPlaySource()
+      const mediaSource = new MediaSource();
+      mediaSource.onsourceopen = onMediaSourceOpen.bind(mediaSource, playSource)
+      mediaSource.onsourceended = function (e) {
+        console.log(e)
+      }
+      mediaSource.onsourceclose = function (e) {
+        console.log(e)
+      }
+      video.src = URL.createObjectURL(mediaSource);
+    }
 
-        function onMediaSourceOpen(playSource) {
-            const mediaSource = this;
-            const sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
-            fetchRemoteSource(playSource).then(res => res.arrayBuffer()).then(buf => {
-                sourceBuffer.onupdateend = () => {
-                    mediaSource.endOfStream();
-                    video.play();
-                }
-                sourceBuffer.appendBuffer(buf);
-            })
+    function onMediaSourceOpen(playSource) {
+      const mediaSource = this;
+      const sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+      fetchRemoteSource(playSource).then(res => res.arrayBuffer()).then(buf => {
+        sourceBuffer.onupdateend = () => {
+          mediaSource.endOfStream();
+          video.play();
         }
+        sourceBuffer.appendBuffer(buf);
+      })
+    }
 
-        // mediaStream仅用于rtc
-        function playWithMediaStreamBtn() {
-            alert('有空再搞,待更新...')
-        }
+    // mediaStream仅用于rtc
+    function playWithMediaStreamBtn() {
+      alert('有空再搞,待更新...')
+    }
 
-    </script>
+  </script>
 </body>
 
 </html>
