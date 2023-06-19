@@ -1,3 +1,3 @@
 # stream-meida-demo
 
-一些流播放的例子
+some video play demo

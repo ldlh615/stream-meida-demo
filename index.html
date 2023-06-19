@@ -5,40 +5,38 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>some simple demo</title>
+  <title>stream-meida-demo</title>
 </head>
 
 <body>
   <video id="video" width="300" height="200" controls></video>
+  <hr>
   <div>
+    <span>Resource: </span>
     <label>
-      <input type="radio" name="playSource" value="remoteSource" checked><span>监狱风云1</span>
+      <input type="radio" name="playSource" value="remoteSource" checked><span>remoteSource</span>
     </label>
     <label>
-      <input type="radio" name="playSource" value="remoteSource2"><span>监狱风云2</span>
+      <input type="radio" name="playSource" value="remoteSource2"><span>remoteSource2</span>
     </label>
     <label>
-      <input type="radio" name="playSource" value="remoteSource3"><span>波涛汹涌</span>
+      <input type="radio" name="playSource" value="remoteSource3"><span>remoteSource3</span>
     </label>
     <label>
-      <input type="radio" name="playSource" value="localSource"><span>傻逼兔子</span>
-    </label>
-    <label>
-      <input type="radio" name="playSource" value="localSource2"><span>波涛汹涌</span>
+      <input type="radio" name="playSource" value="localSource"><span>localSource</span>
     </label>
     <hr>
-    <button id="playBlobBtn">使用blob播放</button>
-    <button id="playMediaSourceBtn">使用mediaSrouce播放</button>
-    <button id="playMediaStreamBtn">使用mediaStream播放</button>
+    <button id="playBlobBtn">Play With Bolb</button>
+    <button id="playMediaSourceBtn">Play With MediaSource</button>
+    <button id="playMediaStreamBtn">Play With MediaStream</button>
   </div>
   <script>
     // 资源
     const playSourceMap = {
       remoteSource: 'https://media.qlchat.com/qlLive/activity/video/4B6BOZKN-9Z5R-4TE8-1661412635902-YGNDJV7SKO5W.mp4',
       remoteSource2: 'https://media.qlchat.com/qlLive/activity/video/NRAOHNLG-4P6Y-KJY4-1661412685421-N6J2SE2XZBV6.mp4',
-      remoteSource3: 'https://cdn.jsdelivr.net/gh/ldlh615/stream-meida-demo/girl.mp4',
-      localSource: './frag_bunny.mp4',
-      localSource2: './girl.mp4',
+      remoteSource3: 'https://media.qlchat.com/qlLive/activity/video/GW8ON59C-KX3P-ND6X-1661855263661-5AVKGSKNIXVW.mp4',
+      localSource: './frag_bunny.mp4'
     }
 
     // 一些辅助方法
@@ -55,9 +53,10 @@
     }
   </script>
   <script>
-    // 视频格式,可以用video.canPlayType来检查,另外codecs可以用MP4info查
+    // you can use video.canPlayType to check the browser support
+    // the codecs use MP4info to check
     const mimeCodec = 'video/mp4; codecs="avc1.64001F, mp4a.40.2"';
-    // html标签
+
     const video = document.getElementById('video')
     const playBlobBtn = document.getElementById('playBlobBtn')
     const playMediaSourceBtn = document.getElementById('playMediaSourceBtn')
@@ -101,10 +100,10 @@
       })
     }
 
-    // mediaStream仅用于rtc
     function playWithMediaStreamBtn() {
-      alert('有空再搞,待更新...')
+
     }
+
 
   </script>
 </body>
