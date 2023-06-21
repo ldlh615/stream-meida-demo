@@ -1,111 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>stream-meida-demo</title>
+  </head>
 
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>stream-meida-demo</title>
-</head>
-
-<body>
-  <video id="video" width="300" height="200" controls></video>
-  <hr>
-  <div>
-    <span>Resource: </span>
-    <label>
-      <input type="radio" name="playSource" value="remoteSource" checked><span>remoteSource</span>
-    </label>
-    <label>
-      <input type="radio" name="playSource" value="remoteSource2"><span>remoteSource2</span>
-    </label>
-    <label>
-      <input type="radio" name="playSource" value="remoteSource3"><span>remoteSource3</span>
-    </label>
-    <label>
-      <input type="radio" name="playSource" value="localSource"><span>localSource</span>
-    </label>
-    <hr>
-    <button id="playBlobBtn">Play With Bolb</button>
-    <button id="playMediaSourceBtn">Play With MediaSource</button>
-    <button id="playMediaStreamBtn">Play With MediaStream</button>
-  </div>
-  <script>
-    // 资源
-    const playSourceMap = {
-      remoteSource: 'https://media.qlchat.com/qlLive/activity/video/4B6BOZKN-9Z5R-4TE8-1661412635902-YGNDJV7SKO5W.mp4',
-      remoteSource2: 'https://media.qlchat.com/qlLive/activity/video/NRAOHNLG-4P6Y-KJY4-1661412685421-N6J2SE2XZBV6.mp4',
-      remoteSource3: 'https://media.qlchat.com/qlLive/activity/video/GW8ON59C-KX3P-ND6X-1661855263661-5AVKGSKNIXVW.mp4',
-      localSource: './frag_bunny.mp4'
-    }
-
-    // 一些辅助方法
-    function fetchRemoteSource(url, headers,) {
-      return fetch(url, headers)
-    }
-
-    function getPlaySource() {
-      const checkedInput = document.querySelector('input[name="playSource"]:checked')
-      if (!checkedInput) {
-        return localSource
+  <body>
+    <video id="video" width="300" height="200" controls autoplay></video>
+    <hr />
+    <div>
+      <span>Resource: </span>
+      <input id="resource" type="text" value="./resource/1.mp4" />
+      <hr />
+      <button id="playBlobBtn">Play With Bolb</button>
+      <button id="playMediaSourceBtn">Play With MediaSource</button>
+    </div>
+    <script>
+      function fetchRemoteSource(url, headers) {
+        return fetch(url, headers);
       }
-      return playSourceMap[checkedInput.value]
-    }
-  </script>
-  <script>
-    // you can use video.canPlayType to check the browser support
-    // the codecs use MP4info to check
-    const mimeCodec = 'video/mp4; codecs="avc1.64001F, mp4a.40.2"';
 
-    const video = document.getElementById('video')
-    const playBlobBtn = document.getElementById('playBlobBtn')
-    const playMediaSourceBtn = document.getElementById('playMediaSourceBtn')
-    const playMediaStreamBtn = document.getElementById('playMediaStreamBtn')
-    playBlobBtn.onclick = playWithBlob
-    playMediaSourceBtn.onclick = playWithMediaSourceBtn
-    playMediaStreamBtn.onclick = playWithMediaStreamBtn
-
-    function playWithBlob() {
-      const playSource = getPlaySource()
-      fetchRemoteSource(playSource).then(res => res.blob()).then((blob) => {
-        const url = URL.createObjectURL(blob)
-        video.src = url
-        video.load()
-        video.play()
-      })
-    }
-
-    function playWithMediaSourceBtn() {
-      const playSource = getPlaySource()
-      const mediaSource = new MediaSource();
-      mediaSource.onsourceopen = onMediaSourceOpen.bind(mediaSource, playSource)
-      mediaSource.onsourceended = function (e) {
-        console.log(e)
+      function getPlaySource() {
+        return document.getElementById('resource').value;
       }
-      mediaSource.onsourceclose = function (e) {
-        console.log(e)
-      }
-      video.src = URL.createObjectURL(mediaSource);
-    }
+    </script>
+    <script>
+      // you can use video.canPlayType to check the browser support
+      // the codecs use MP4info to check
+      const mimeCodec = 'video/mp4; codecs="avc1.64001F, mp4a.40.2"';
 
-    function onMediaSourceOpen(playSource) {
-      const mediaSource = this;
-      const sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
-      fetchRemoteSource(playSource).then(res => res.arrayBuffer()).then(buf => {
-        sourceBuffer.onupdateend = () => {
-          mediaSource.endOfStream();
-          video.play();
+      const video = document.getElementById('video');
+      const playBlobBtn = document.getElementById('playBlobBtn');
+      const playMediaSourceBtn = document.getElementById('playMediaSourceBtn');
+      playBlobBtn.onclick = playWithBlob;
+      playMediaSourceBtn.onclick = playWithMediaSourceBtn;
+
+      function playWithBlob() {
+        const playSource = getPlaySource();
+        fetchRemoteSource(playSource)
+          .then((res) => res.blob())
+          .then((blob) => {
+            const url = URL.createObjectURL(blob);
+            video.src = url;
+            video.load();
+            video.play();
+          });
+      }
+
+      function playWithMediaSourceBtn() {
+        if (!MediaSource.isTypeSupported(mimeCodec)) {
+          alert('your browser is not support');
+          return;
         }
-        sourceBuffer.appendBuffer(buf);
-      })
-    }
 
-    function playWithMediaStreamBtn() {
+        const playSource = getPlaySource();
+        const mediaSource = new MediaSource();
 
-    }
+        mediaSource.onsourceopen = function (e) {
+          const sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+          fetchRemoteSource(playSource)
+            .then((res) => res.arrayBuffer())
+            .then((buf) => {
+              sourceBuffer.onerror = (e) => {
+                console.log(e);
+              };
+              sourceBuffer.onupdateend = () => {
+                // mediaSource.endOfStream();
+                video.play();
+              };
+              sourceBuffer.appendBuffer(buf);
+              console.log(sourceBuffer);
+            });
+        };
+        mediaSource.onsourceended = function (e) {
+          // console.log(e);
+        };
+        mediaSource.onsourceclose = function (e) {
+          // console.log(e);
+        };
 
-
-  </script>
-</body>
-
+        video.src = URL.createObjectURL(mediaSource);
+      }
+    </script>
+  </body>
 </html>
