@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>stream-meida-demo</title>
     <style>
-      video, canvas {
+      video,
+      canvas {
         background: #000;
       }
     </style>
@@ -17,8 +18,17 @@
     <canvas id="canvas" width="300" height="200"></canvas>
     <hr />
     <div>
+      <span>Host</span>
+      <label>
+        <input type="radio" name="host" value="local" checked />
+        <span>local</span>
+      </label>
+      <hr />
       <span>Resource: </span>
-      <input id="resource" type="text" value="./resource/1.mp4" />
+      <!-- <input id="resource" type="text" value="./resource/1.mp4" /> -->
+      <select id="resource" value="./resource/1.mp4">
+        <option value="./resource/1.mp4" selected>./resource/1.mp4</option>
+      </select>
       <hr />
       <button id="playUrl">Play With url</button>
       <button id="playBlobBtn">Play With Bolb</button>
@@ -31,7 +41,9 @@
       }
 
       function getPlaySource() {
-        return document.getElementById('resource').value;
+        const checkedHost = document.querySelector('input[type=radio]:checked');
+        const host = checkedHost.value === 'server' ? 'http://127.0.0.1:8080' : '';
+        return host + document.getElementById('resource').value;
       }
     </script>
     <script>
@@ -40,13 +52,13 @@
       const mimeCodec = 'video/mp4; codecs="avc1.64001F, mp4a.40.2"';
 
       const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
       const playUrlBtn = document.getElementById('playUrl');
       const playBlobBtn = document.getElementById('playBlobBtn');
       const playMediaSourceBtn = document.getElementById('playMediaSourceBtn');
       const playCanvasBtn = document.getElementById('playCanvasBtn');
-
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
 
       playUrlBtn.onclick = playWithUrl;
       playBlobBtn.onclick = playWithBlob;

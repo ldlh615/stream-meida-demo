@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>server-206-demo</title>
+    <style>
+      video {
+        background: #000;
+      }
+    </style>
+  </head>
+
+  <body>
+    <video id="video" width="300" height="200" controls autoplay></video>
+    <hr />
+    <div>
+      <span>Host</span>
+      <label>
+        <input type="radio" name="host" value="server" checked />
+        <span>server</span>
+      </label>
+      <hr />
+      <span>Resource: </span>
+      <select id="resource" value="/resource/1.mp4">
+        <option value="/resource/1.mp4">/resource/1.mp4</option>
+        <option value="/resource/2.mp4">/resource/2.mp4</option>
+        <option value="/resource/3.mp4" selected>/resource/3.mp4</option>
+      </select>
+      <hr />
+      <button id="playUrl">Play With url</button>
+    </div>
+    <script>
+      function fetchRemoteSource(url, headers) {
+        return fetch(url, headers);
+      }
+
+      function getPlaySource() {
+        const checkedHost = document.querySelector('input[type=radio]:checked');
+        const host = checkedHost.value === 'server' ? 'http://127.0.0.1:8080' : '';
+        return host + document.getElementById('resource').value;
+      }
+    </script>
+    <script>
+      const video = document.getElementById('video');
+
+      const playUrlBtn = document.getElementById('playUrl');
+
+      playUrlBtn.onclick = playWithUrl;
+
+      function playWithUrl() {
+        const playSource = getPlaySource();
+        video.src = playSource;
+        video.play();
+      }
+    </script>
+  </body>
+</html>

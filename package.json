@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "http-server -p 1234 -o"
+    "start": "http-server -p 1234 -o",
+    "server": "nodemon ./server.js"
   },
   "repository": {
     "type": "git",
