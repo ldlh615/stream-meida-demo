@@ -5,7 +5,7 @@ const { format } = require('util');
 
 const host = '0.0.0.0';
 const port = 8080;
-const judgeFileSplitSize = 512000; // 500kb
+const splitSize = 1 * 1024 * 1024; // 1mb
 
 // video/mp4
 function computeHeaderRange(headerRange) {
@@ -20,7 +20,7 @@ function computeHeaderRange(headerRange) {
   if (!value) {
     return range;
   }
-  const [start, end] = value.split('=');
+  const [start, end] = value.split('-');
   range.start = Number(start) || 0;
   range.end = Number(end) || undefined;
   return range;
@@ -34,10 +34,10 @@ function computeSuitableRange(headerComputedRange, stat) {
   if (headerComputedRange.start) {
     start = headerComputedRange.start;
   }
-  if (maxFileSize <= judgeFileSplitSize) {
+  if (maxFileSize <= splitSize) {
     end = maxFileSize;
   } else {
-    end = Math.min(maxFileSize, start + judgeFileSplitSize);
+    end = Math.min(maxFileSize, start + splitSize);
   }
 
   return {
@@ -56,11 +56,13 @@ function formatMediaRangeResponseHeader(stat, resourcePath, suitableRange) {
     headers['Content-Type'] = 'video/mp4';
   }
   headers['Content-Range'] = format('bytes %d-%d/%d', suitableRange.start, suitableRange.end, maxFileSize);
+  // headers['Content-Length'] = suitableRange.end - suitableRange.start;
 
   return headers;
 }
 
 const server = http.createServer((req, res) => {
+  console.log('req come', req.headers.range);
   const resourcePath = path.resolve(__dirname, './' + req.url);
 
   if (!fs.existsSync(resourcePath)) {
@@ -70,17 +72,34 @@ const server = http.createServer((req, res) => {
   }
 
   const stat = fs.statSync(resourcePath);
-  const range = computeHeaderRange(req.headers.range);
-  const suitableRange = computeSuitableRange(range, stat);
-  const responseHeader = formatMediaRangeResponseHeader(stat, resourcePath, suitableRange);
-  for (let key in responseHeader) {
-    res.setHeader(key, responseHeader[key]);
-  }
+  // has range
+  if (req.headers.range) {
+    const range = computeHeaderRange(req.headers.range);
+    const suitableRange = computeSuitableRange(range, stat);
+    console.log(range, suitableRange, stat.size, '\n---\n');
 
-  const readStream = fs.createReadStream(resourcePath, {
-    ...suitableRange,
-  });
-  readStream.pipe(res);
+    res.writeHead(206, {
+      'Content-Range': `bytes ${suitableRange.start}-${suitableRange.end}/${stat.size}`,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': suitableRange.end - suitableRange.start + 1,
+      'Content-Type': 'video/mp4',
+      'Cache-Control': 'max-age=3600',
+    });
+
+    const readStream = fs.createReadStream(resourcePath, {
+      ...suitableRange,
+    });
+    readStream.pipe(res);
+  }
+  // has no range
+  else {
+    res.writeHead(200, {
+      'Content-Length': stat.size,
+      'Content-Type': 'video/mp4',
+      'Cache-Control': 'no-cache',
+    });
+    res.end();
+  }
 });
 
 server.listen(port, host, () => {
