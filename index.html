@@ -18,16 +18,12 @@
     <canvas id="canvas" width="300" height="200"></canvas>
     <hr />
     <div>
-      <span>Host</span>
-      <label>
-        <input type="radio" name="host" value="local" checked />
-        <span>local</span>
-      </label>
-      <hr />
       <span>Resource: </span>
       <!-- <input id="resource" type="text" value="./resource/1.mp4" /> -->
       <select id="resource" value="./resource/1.mp4">
         <option value="./resource/1.mp4" selected>./resource/1.mp4</option>
+        <option value="./resource/2.mp4">./resource/2.mp4</option>
+        <option value="./resource/3.mp4">./resource/3.mp4</option>
       </select>
       <hr />
       <button id="playUrl">Play With url</button>
@@ -41,9 +37,7 @@
       }
 
       function getPlaySource() {
-        const checkedHost = document.querySelector('input[type=radio]:checked');
-        const host = checkedHost.value === 'server' ? 'http://127.0.0.1:8080' : '';
-        return host + document.getElementById('resource').value;
+        return document.getElementById('resource').value;
       }
     </script>
     <script>

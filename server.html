@@ -13,23 +13,18 @@
   </head>
 
   <body>
-    <video id="video" width="300" height="200" controls autoplay></video>
+    <video id="video" width="300" height="200" controls muted></video>
     <hr />
     <div>
-      <span>Host</span>
-      <label>
-        <input type="radio" name="host" value="server" checked />
-        <span>server</span>
-      </label>
-      <hr />
       <span>Resource: </span>
       <select id="resource" value="/resource/1.mp4">
-        <option value="/resource/1.mp4">/resource/1.mp4</option>
-        <option value="/resource/2.mp4">/resource/2.mp4</option>
-        <option value="/resource/3.mp4" selected>/resource/3.mp4</option>
+        <option value="http://127.0.0.1:8080/resource/1.mp4">http://127.0.0.1:8080/resource/1.mp4</option>
+        <option value="http://127.0.0.1:8080/resource/2.mp4">http://127.0.0.1:8080/resource/2.mp4</option>
+        <option value="http://127.0.0.1:8080/resource/3.mp4" selected>http://127.0.0.1:8080/resource/3.mp4</option>
+        <option value="./resource/3.mp4">./resource/3.mp4</option>
       </select>
       <hr />
-      <button id="playUrl">Play With url</button>
+      <button id="loadResource">Load Resource</button>
     </div>
     <script>
       function fetchRemoteSource(url, headers) {
@@ -37,23 +32,23 @@
       }
 
       function getPlaySource() {
-        const checkedHost = document.querySelector('input[type=radio]:checked');
-        const host = checkedHost.value === 'server' ? 'http://127.0.0.1:8080' : '';
-        return host + document.getElementById('resource').value;
+        return document.getElementById('resource').value;
       }
     </script>
     <script>
+      // init video tag
       const video = document.getElementById('video');
+      video.onerror = function (err) {
+        console.log(err);
+      };
 
-      const playUrlBtn = document.getElementById('playUrl');
-
-      playUrlBtn.onclick = playWithUrl;
-
-      function playWithUrl() {
+      // load the resource
+      const loadResourceBtn = document.getElementById('loadResource');
+      loadResourceBtn.onclick = function () {
         const playSource = getPlaySource();
         video.src = playSource;
-        video.play();
-      }
+        video.load();
+      };
     </script>
   </body>
 </html>
