@@ -1,17 +1,18 @@
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
-const { format } = require('util');
 
 const host = '0.0.0.0';
 const port = 8080;
 const splitSize = 1 * 1024 * 1024; // 1mb
 
 // video/mp4
-function computeHeaderRange(headerRange) {
+function computeRange(headerRange, fileSize) {
   const range = {
     start: 0,
     end: undefined,
+    size: fileSize,
+    length: 0,
   };
   if (!headerRange || typeof headerRange !== 'string' || headerRange.indexOf('bytes=') < 0) {
     return range;
@@ -21,49 +22,18 @@ function computeHeaderRange(headerRange) {
     return range;
   }
   const [start, end] = value.split('-');
-  range.start = Number(start) || 0;
-  range.end = Number(end) || undefined;
+  range.start = parseInt(start) || 0;
+  range.end = parseInt(end) || range.start + splitSize;
+  if (range.end > fileSize - 1) {
+    range.end = fileSize - 1;
+  }
+  range.length = range.end - range.start + 1;
   return range;
 }
 
-function computeSuitableRange(headerComputedRange, stat) {
-  const maxFileSize = stat.size;
-  let start = 0;
-  let end = 0;
-
-  if (headerComputedRange.start) {
-    start = headerComputedRange.start;
-  }
-  if (maxFileSize <= splitSize) {
-    end = maxFileSize;
-  } else {
-    end = Math.min(maxFileSize, start + splitSize);
-  }
-
-  return {
-    start,
-    end,
-  };
-}
-
-function formatMediaRangeResponseHeader(stat, resourcePath, suitableRange) {
-  const maxFileSize = stat.size;
-  const headers = {
-    'Accept-Ranges': 'bytes',
-  };
-  const extName = path.extname(resourcePath).toLowerCase();
-  if (extName.indexOf('mp4') > -1) {
-    headers['Content-Type'] = 'video/mp4';
-  }
-  headers['Content-Range'] = format('bytes %d-%d/%d', suitableRange.start, suitableRange.end, maxFileSize);
-  // headers['Content-Length'] = suitableRange.end - suitableRange.start;
-
-  return headers;
-}
-
 const server = http.createServer((req, res) => {
-  console.log('req come', req.headers.range);
-  const resourcePath = path.resolve(__dirname, './' + req.url);
+  const now = new Date();
+  const resourcePath = path.resolve(__dirname, './resource', '.' + req.url);
 
   if (!fs.existsSync(resourcePath)) {
     res.writeHead(404);
@@ -72,32 +42,35 @@ const server = http.createServer((req, res) => {
   }
 
   const stat = fs.statSync(resourcePath);
+  const fileSize = stat.size;
+
+  console.log('->', now.toLocaleTimeString(), req.url, resourcePath, req.headers.range);
+
   // has range
   if (req.headers.range) {
-    const range = computeHeaderRange(req.headers.range);
-    const suitableRange = computeSuitableRange(range, stat);
-    console.log(range, suitableRange, stat.size, '\n---\n');
+    const range = computeRange(req.headers.range, fileSize);
 
     res.writeHead(206, {
-      'Content-Range': `bytes ${suitableRange.start}-${suitableRange.end}/${stat.size}`,
+      'Content-Range': `bytes ${range.start}-${range.end}/${range.size}`,
       'Accept-Ranges': 'bytes',
-      'Content-Length': suitableRange.end - suitableRange.start + 1,
+      'Content-Length': range.length,
       'Content-Type': 'video/mp4',
-      'Cache-Control': 'max-age=3600',
     });
 
     const readStream = fs.createReadStream(resourcePath, {
-      ...suitableRange,
+      start: range.start,
+      end: range.end,
     });
     readStream.pipe(res);
+    console.log('<-', now.toLocaleTimeString(), res._header);
   }
   // has no range
   else {
     res.writeHead(200, {
       'Content-Length': stat.size,
       'Content-Type': 'video/mp4',
-      'Cache-Control': 'no-cache',
     });
+    console.log('<-', now.toLocaleTimeString(), res._header);
     res.end();
   }
 });
