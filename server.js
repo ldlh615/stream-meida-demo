@@ -1,12 +1,12 @@
 const http = require('http');
 const path = require('path');
 const fs = require('fs');
+const { URL } = require('url');
 
 const host = '0.0.0.0';
-const port = 8080;
+const port = 3000;
 const splitSize = 1 * 1024 * 1024; // 1mb
 
-// video/mp4
 function computeRange(headerRange, fileSize) {
   const range = {
     start: 0,
@@ -32,8 +32,10 @@ function computeRange(headerRange, fileSize) {
 }
 
 const server = http.createServer((req, res) => {
-  const now = new Date();
-  const resourcePath = path.resolve(__dirname, './resource', '.' + req.url);
+  const url = new URL(req.url, 'http://' + host + ':' + port);
+  const resourcePath = path.resolve(__dirname, './resource', '.' + url.pathname);
+  const params = url.searchParams;
+  const type = params.get('type');
 
   if (!fs.existsSync(resourcePath)) {
     res.writeHead(404);
@@ -43,6 +45,12 @@ const server = http.createServer((req, res) => {
 
   const stat = fs.statSync(resourcePath);
   const fileSize = stat.size;
+
+  if (type === 'fileSize') {
+    res.write(String(fileSize));
+    res.end();
+    return;
+  }
 
   // has range
   if (req.headers.range) {

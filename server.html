@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>server-206-demo</title>
+    <title>split load</title>
     <style>
       video {
         background: #000;
@@ -17,14 +17,15 @@
     <hr />
     <div>
       <span>Resource: </span>
+      <input type="text" id="host" value="http://127.0.0.1:3000" />
       <select id="resource" value="/1.mp4">
-        <option value="http://127.0.0.1:8080/1.mp4" selected>1.mp4</option>
-        <option value="http://127.0.0.1:8080/2.mp4">2.mp4</option>
-        <option value="http://127.0.0.1:8080/3.mp4">3.mp4</option>
-        <option value="http://127.0.0.1:8080/4.mp4">4.mp4</option>
+        <option value="1.mp4" selected>1.mp4</option>
+        <option value="2.mp4">2.mp4</option>
+        <option value="3.mp4">3.mp4</option>
+        <option value="4.mp4">4.mp4</option>
       </select>
       <hr />
-      <button id="loadResource">Load Resource And Play</button>
+      <button id="loadResource">Load Resource</button>
     </div>
     <script>
       function fetchRemoteSource(url, headers) {
@@ -32,7 +33,7 @@
       }
 
       function getPlaySource() {
-        return document.getElementById('resource').value;
+        return document.getElementById('host').value + '/' + document.getElementById('resource').value;
       }
     </script>
     <script>
@@ -41,6 +42,9 @@
       video.onerror = function (err) {
         console.log(err);
       };
+      video.onloadeddata = function (e) {
+        console.log(e);
+      };
 
       // load the resource
       const loadResourceBtn = document.getElementById('loadResource');
@@ -48,7 +52,7 @@
         const playSource = getPlaySource();
         video.src = playSource;
         video.load();
-        video.play();
+        // video.play();
       };
     </script>
   </body>
