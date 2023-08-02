@@ -44,8 +44,6 @@ const server = http.createServer((req, res) => {
   const stat = fs.statSync(resourcePath);
   const fileSize = stat.size;
 
-  console.log('->', now.toLocaleTimeString(), req.url, resourcePath, req.headers.range);
-
   // has range
   if (req.headers.range) {
     const range = computeRange(req.headers.range, fileSize);
@@ -62,7 +60,6 @@ const server = http.createServer((req, res) => {
       end: range.end,
     });
     readStream.pipe(res);
-    console.log('<-', now.toLocaleTimeString(), res._header);
   }
   // has no range
   else {
@@ -70,7 +67,6 @@ const server = http.createServer((req, res) => {
       'Content-Length': stat.size,
       'Content-Type': 'video/mp4',
     });
-    console.log('<-', now.toLocaleTimeString(), res._header);
     res.end();
   }
 });
